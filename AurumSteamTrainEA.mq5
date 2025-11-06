@@ -1016,6 +1016,11 @@ bool HasPositionByComment(string commentPrefix)
 //+------------------------------------------------------------------+
 void ManagePositions()
 {
+   long stopLevelPointsLong = 0;
+   if(!SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL, stopLevelPointsLong))
+      stopLevelPointsLong = 0;
+   double stopLevelDistance = (double)stopLevelPointsLong * _Point;
+
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
       if(!position.SelectByIndex(i)) continue;
@@ -1109,7 +1114,8 @@ void ManagePositions()
                if(position.PositionType() == POSITION_TYPE_BUY)
                {
                   desiredSL = bid - atrTrail * ATR_TrailMultiplier;
-                  desiredSL = MathMin(desiredSL, bid - SymbolInfoDouble(_Symbol, SYMBOL_TRADE_STOPS_LEVEL) * _Point);
+                  if(stopLevelDistance > 0)
+                     desiredSL = MathMin(desiredSL, bid - stopLevelDistance);
                   desiredSL = MathMax(desiredSL, openPrice); // never trail below entry
                   if(desiredSL > sl)
                   {
@@ -1126,7 +1132,8 @@ void ManagePositions()
                else if(position.PositionType() == POSITION_TYPE_SELL)
                {
                   desiredSL = ask + atrTrail * ATR_TrailMultiplier;
-                  desiredSL = MathMax(desiredSL, ask + SymbolInfoDouble(_Symbol, SYMBOL_TRADE_STOPS_LEVEL) * _Point);
+                  if(stopLevelDistance > 0)
+                     desiredSL = MathMax(desiredSL, ask + stopLevelDistance);
                   desiredSL = MathMin(desiredSL, openPrice); // never trail above entry
                   if(desiredSL < sl)
                   {
